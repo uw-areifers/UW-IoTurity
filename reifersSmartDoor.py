@@ -72,30 +72,32 @@ class smart_door(object):
         else:  # crosses midnight
             return check_time >= begin_time or check_time <= end_time
 
+#{ "state_change_request" : "locked", "pin_code": "1337"}
+#{ \"current_time\": \"12:44:11\" }
     def process_published_message(self, message):
         try:
             payload_string = str(message.payload.decode("utf-8"))
-            payload_json_obj = {}
+            payload_json = {}
             try:
-                payload_json_obj = json.loads(payload_string, object_hook=lambda d: SimpleNamespace(**d))
+                payload_json = json.loads(payload_string, object_hook=lambda d: SimpleNamespace(**d))
             except ValueError as json_parse_error:
                 print("Unable to Parse JSON. Error Message: " + json_parse_error)
             print("Front Door processing Topic = ", message.topic)
             print("Front Door processing message =", payload_string)
             if message.topic.endswith('emergency'):
-                self.emergency_response(payload_json_obj)
+                self.emergency_response(payload_json)
             if message.topic.endswith('time'):
-                self.set_current_time(payload_json_obj)
+                self.set_current_time(payload_json)
             if message.topic.endswith('front-door'):
                 during_open_hours = self.is_during_open_hours()
                 if not during_open_hours:
                     print('After hours status change request')
                 else:
-                    if self.check_pin_code(payload_json_obj):
-                        if payload_json_obj.state_change_request == 'unlock':
+                    if self.check_pin_code(payload_json):
+                        if payload_json.state_change_request == 'unlock':
                             self.unlock()
-                        if payload_json_obj.state_change_request == 'lock':
+                        if payload_json.state_change_request == 'lock':
                             self.lock()
             self.print_door_status()
         except Exception as e:
-            print("Uncaught Error Occurred.  Error:" + e)
+            print("Uncaught Error Occurred.  Error Type : " + type(e) + ". Error Args : " + e.args)
