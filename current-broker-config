@@ -1,0 +1,15 @@
+persistence true
+per_listener_settings true
+
+listener 1883
+log_dest stdout
+allow_anonymous true
+connection_messages true
+
+listener 8883
+connection_messages true
+allow_anonymous true
+log_dest stdout
+certfile /etc/mosquitto/certs/cert1.pem
+cafile /etc/mosquitto/certs/chain1.pem
+keyfile /etc/mosquitto/certs/privkey1.pem
